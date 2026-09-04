@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const organizacionSelect = document.getElementById('organizacion');
 
   // URL del Web App de Google Apps Script
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUNx-kauS7pOgLbPtGjyJZOAagMM0PKLsCcWnM7OKMNxstCBDbU0f0iW29dnxng3IlJA/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWtNf6nNGqMiEyse8zk172usHYN5ff4D2n4Jxa9qYWmho4evn6DkoJjcC63ombwq-2/exec';
 
   /**
    * Contador de caracteres en tiempo real para Pregunta 2
@@ -72,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    if (submitBtn.disabled || successModal.classList.contains('active')) return;
+
     const cardQ1 = document.getElementById('card-q1');
     const cardOrganizacion = document.getElementById('card-organizacion');
     const selectedRadio = form.querySelector('input[name="q1"]:checked');
@@ -106,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Estado de carga y deshabilitar botón para evitar envíos duplicados
     submitBtn.disabled = true;
     submitBtn.innerHTML = `
-      <span>Guardando...</span>
+      <span>Registrando respuestas...</span>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="spin-icon">
         <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
@@ -121,29 +123,21 @@ document.addEventListener('DOMContentLoaded', () => {
         feedback: feedbackText
       };
 
-      // Si el HTML se sirve desde Apps Script usa google.script.run; en un
-      // alojamiento externo conserva el envío actual a la Web App.
-      if (window.google && google.script && google.script.run) {
-        await new Promise((resolve, reject) => {
-          google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)
-            .guardarRespuesta(payload);
-        });
-      } else {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-      }
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload)
+      });
 
+      // La respuesta no-cors es opaca; no permite confirmar la escritura en Sheets.
       // Mostrar modal de éxito
       successModal.classList.add('active');
       successModal.setAttribute('aria-hidden', 'false');
+      form.inert = true;
+      closeModalBtn.focus();
     } catch (error) {
       console.error('Error al registrar la respuesta en Google Sheets:', error);
       alert('Ocurrió un error al registrar tu respuesta. Por favor, verifica tu conexión e inténtalo de nuevo.');
@@ -167,7 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
     successModal.setAttribute('aria-hidden', 'true');
 
     // Limpiar formulario y selección visual
+    form.inert = false;
     form.reset();
+    organizacionSelect.focus({ preventScroll: true });
     likertOptions.forEach(option => {
       option.classList.remove('selected');
       option.removeAttribute('data-value');
