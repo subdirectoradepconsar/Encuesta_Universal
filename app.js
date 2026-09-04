@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const likertOptions = document.querySelectorAll('.likert-option');
   const textareaQ2 = document.getElementById('textarea-q2');
   const charCount = document.getElementById('charCount');
+  const organizacionSelect = document.getElementById('organizacion');
 
   // URL del Web App de Google Apps Script
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUNx-kauS7pOgLbPtGjyJZOAagMM0PKLsCcWnM7OKMNxstCBDbU0f0iW29dnxng3IlJA/exec';
@@ -72,8 +73,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     const cardQ1 = document.getElementById('card-q1');
+    const cardOrganizacion = document.getElementById('card-organizacion');
     const selectedRadio = form.querySelector('input[name="q1"]:checked');
     const feedbackText = textareaQ2 ? textareaQ2.value.trim() : '';
+    const organizacion = document.getElementById('organizacion').value;
+
+    // Validación de organización obligatoria
+    if (!organizacion) {
+      if (cardOrganizacion) {
+        cardOrganizacion.classList.add('error-state');
+        cardOrganizacion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    if (cardOrganizacion) cardOrganizacion.classList.remove('error-state');
 
     // Validación de respuesta obligatoria (Pregunta 1)
     if (!selectedRadio) {
@@ -101,18 +115,31 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     try {
-      // Envío del payload en JSON a Google Apps Script
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          satisfaction: valorSeleccionado,
-          feedback: feedbackText
-        })
-      });
+      const payload = {
+        organizacion,
+        satisfaction: valorSeleccionado,
+        feedback: feedbackText
+      };
+
+      // Si el HTML se sirve desde Apps Script usa google.script.run; en un
+      // alojamiento externo conserva el envío actual a la Web App.
+      if (window.google && google.script && google.script.run) {
+        await new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .guardarRespuesta(payload);
+        });
+      } else {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+      }
 
       // Mostrar modal de éxito
       successModal.classList.add('active');
@@ -125,6 +152,11 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnContent;
     }
+  });
+
+  organizacionSelect.addEventListener('change', () => {
+    const cardOrganizacion = document.getElementById('card-organizacion');
+    if (cardOrganizacion) cardOrganizacion.classList.remove('error-state');
   });
 
   /**
@@ -154,4 +186,3 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
-
