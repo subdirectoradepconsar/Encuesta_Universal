@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cardQ1) cardQ1.classList.remove('error-state');
 
-    const valorSeleccionado = selectedRadio.value;
+    const valorSeleccionado = selectedRadio.value.replace(/^\d+\s*-\s*/, '');
     const originalBtnContent = submitBtn.innerHTML;
 
     // Estado de carga y deshabilitar botón para evitar envíos duplicados
@@ -118,9 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const payload = {
-        organizacion,
-        satisfaction: valorSeleccionado,
-        feedback: feedbackText
+        publico: organizacion,
+        satisfaccion: valorSeleccionado,
+        comentarios: feedbackText
       };
 
       await fetch(GOOGLE_SCRIPT_URL, {
