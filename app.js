@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const organizacionSelect = document.getElementById('organizacion');
 
   // URL del Web App de Google Apps Script
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWtNf6nNGqMiEyse8zk172usHYN5ff4D2n4Jxa9qYWmho4evn6DkoJjcC63ombwq-2/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby48auBrEWt_V6SZ7qPg5nBx-cJYQg-yjx_s8xzBC75D56mBISYq9sJJemOtUnEtbrxow/exec';
 
   /**
    * Contador de caracteres en tiempo real para Pregunta 2

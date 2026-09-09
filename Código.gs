@@ -1,9 +1,9 @@
 const NOMBRE_HOJA = 'Respuestas';
-const ENCABEZADOS = ['Fecha y hora', 'Organización', 'Satisfacción', 'Comentarios'];
+const ENCABEZADOS = ['Fecha y hora', 'Público', 'Satisfacción', 'Comentarios'];
 
 /** Recibe el objeto enviado mediante google.script.run. */
 function guardarRespuesta(datos) {
-  if (!datos || !datos.organizacion || !datos.satisfaction) {
+  if (!datos || !datos.publico || !datos.satisfaccion) {
     throw new Error('Faltan campos obligatorios en la respuesta.');
   }
 
@@ -26,9 +26,9 @@ function guardarRespuesta(datos) {
 
     hoja.appendRow([
       new Date(),
-      datos.organizacion,
-      datos.satisfaction,
-      datos.feedback || ''
+      datos.publico,
+      datos.satisfaccion,
+      datos.comentarios || ''
     ]);
 
     return { ok: true };
